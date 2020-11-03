@@ -1,13 +1,14 @@
 import React, { ChangeEvent, useState } from "react";
 import { Button, Form, Segment } from "semantic-ui-react";
 import { IActivity } from "../../../models/activity";
-import {v4 as uuid} from "uuid";
+import { v4 as uuid } from "uuid";
 
 interface IProps {
   setEditMode: (editMode: boolean) => void;
   activity: IActivity;
   createActivity: (activity: IActivity) => void;
   editActivity: (activity: IActivity) => void;
+  submitting: boolean;
 }
 
 export const ActivityForm: React.FC<IProps> = ({
@@ -15,6 +16,7 @@ export const ActivityForm: React.FC<IProps> = ({
   activity: initialFormState,
   createActivity,
   editActivity,
+  submitting,
 }) => {
   const initialiseForm = () => {
     if (initialFormState) return initialFormState;
@@ -33,7 +35,7 @@ export const ActivityForm: React.FC<IProps> = ({
 
   const [activity, setActivity] = useState<IActivity>(initialiseForm);
   const handleSubmit = () => {
-    console.log(activity);
+    //console.log(activity);
     if (activity.id.length === 0) {
       let newActivity = {
         ...activity,
@@ -93,7 +95,7 @@ export const ActivityForm: React.FC<IProps> = ({
           onChange={handleInputChange}
           value={activity.venue}
         />
-        <Button
+        <Button loading={submitting}
           type="submit"
           positive
           floated="right"
