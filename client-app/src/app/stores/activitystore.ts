@@ -12,11 +12,9 @@ import agent from "../api/agent";
 configure({ enforceActions: "always" });
 
 class ActivityStore {
-  activityRegsitry = new Map();
-  activities: IActivity[] = [];
+  activityRegistry = new Map();
   loading = false;
-  selectedActivity: IActivity | undefined;
-  editMode: boolean = false;
+  activity: IActivity | null = null;
   submitting: boolean = false;
   target = "";
 
@@ -25,7 +23,7 @@ class ActivityStore {
   }
 
   @computed get activitiesByDate() {
-    return Array.from(this.activityRegsitry.values()).sort(
+    return Array.from(this.activityRegistry.values()).sort(
       (a, b) => Date.parse(a.date) - Date.parse(b.date)
     );
   }
@@ -37,7 +35,7 @@ class ActivityStore {
       runInAction(() => {
         activities.forEach((activity) => {
           activity.date = activity.date.split(".")[0];
-          this.activityRegsitry.set(activity.id, activity);
+          this.activityRegistry.set(activity.id, activity);
         });
         this.loading = false;
       });
@@ -49,23 +47,46 @@ class ActivityStore {
     }
   };
 
+  @action loadActivity = async (id: string) => {
+    let activity = this.getActivity(id);
+    if (activity) this.activity = activity
+    else {
+      this.loading = true;
+      try {
+        activity = await agent.Activities.details(id)
+        runInAction(() => {
+          this.activity = activity
+          this.loading = false
+        })
+      } catch (error) {
+        console.error(error)
+        runInAction(() => {
+          this.loading = false
+        })
+      }
+    }
+
+  };
+
+  @action clearActivity = () => {
+    this.activity = null;
+  }
+
+  getActivity = (id: string) => {
+    return this.activityRegistry.get(id);
+  };
+
   @action selectActivity = (id: string) => {
-    this.selectedActivity = this.activityRegsitry.get(id);
-    this.editMode = false;
+    this.activity = this.activityRegistry.get(id);
   };
 
-  @action openCreateActivityForm = () => {
-    this.selectedActivity = undefined;
-    this.editMode = true;
-  };
-
+ 
   @action createActivity = async (activity: IActivity) => {
     this.submitting = true;
     try {
       await agent.Activities.create(activity);
       runInAction(() => {
-        this.activityRegsitry.set(activity.id, activity);
-        this.editMode = false;
+        this.activityRegistry.set(activity.id, activity);
         this.submitting = false;
       });
     } catch (error) {
@@ -81,9 +102,8 @@ class ActivityStore {
     try {
       await agent.Activities.update(activity);
       runInAction(() => {
-        this.activityRegsitry.set(activity.id, activity);
-        this.selectedActivity = activity;
-        this.editMode = false;
+        this.activityRegistry.set(activity.id, activity);
+        this.activity = activity;
         this.submitting = false;
       });
     } catch (error) {
@@ -103,7 +123,7 @@ class ActivityStore {
     try {
       await agent.Activities.delete(id);
       runInAction(() => {
-        this.activityRegsitry.delete(id);
+        this.activityRegistry.delete(id);
         this.submitting = false;
         this.target = "";
       });
@@ -116,12 +136,9 @@ class ActivityStore {
     }
   };
 
-  @action setEditMode = (editMode: boolean) => {
-    this.editMode = editMode;
-  };
 
-  @action setSelectedActivity = (activity: IActivity | undefined) => {
-    this.selectedActivity = activity;
+  @action setSelectedActivity = (activity: IActivity | null) => {
+    this.activity = activity;
   };
 }
 
