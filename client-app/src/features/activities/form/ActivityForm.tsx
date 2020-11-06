@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useContext, useEffect, useState } from "react";
-import { Button, Form, Segment } from "semantic-ui-react";
+import { Button, Form, Grid, Segment } from "semantic-ui-react";
 import { IActivity } from "../../../models/activity";
 import { v4 as uuid } from "uuid";
 import { observer } from "mobx-react-lite";
@@ -65,7 +65,9 @@ export const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({
   };
 
   return (
-    <Segment clearing>
+    <Grid>
+      <Grid.Column width={10}>
+      <Segment clearing>
       <Form onSubmit={handleSubmit}>
         <Form.Input
           placeholder="Title"
@@ -119,6 +121,9 @@ export const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({
         ></Button>
       </Form>
     </Segment>
+      </Grid.Column>
+    </Grid>
+    
   );
 };
 

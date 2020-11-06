@@ -23,8 +23,23 @@ class ActivityStore {
   }
 
   @computed get activitiesByDate() {
-    return Array.from(this.activityRegistry.values()).sort(
+    return this.groupActivitiesByDate(
+      Array.from(this.activityRegistry.values())
+    );
+  }
+
+  groupActivitiesByDate(activities: IActivity[]) {
+    const sortedActivities = activities.sort(
       (a, b) => Date.parse(a.date) - Date.parse(b.date)
+    );
+    return Object.entries(
+      sortedActivities.reduce((activities, activity) => {
+        const date = activity.date.split("T")[0];
+        activities[date] = activities[date]
+          ? [...activities[date], activity]
+          : [activity];
+          return activities;
+      }, {} as { [key: string]: IActivity[] })
     );
   }
 
@@ -49,28 +64,27 @@ class ActivityStore {
 
   @action loadActivity = async (id: string) => {
     let activity = this.getActivity(id);
-    if (activity) this.activity = activity
+    if (activity) this.activity = activity;
     else {
       this.loading = true;
       try {
-        activity = await agent.Activities.details(id)
+        activity = await agent.Activities.details(id);
         runInAction(() => {
-          this.activity = activity
-          this.loading = false
-        })
+          this.activity = activity;
+          this.loading = false;
+        });
       } catch (error) {
-        console.error(error)
+        console.error(error);
         runInAction(() => {
-          this.loading = false
-        })
+          this.loading = false;
+        });
       }
     }
-
   };
 
   @action clearActivity = () => {
     this.activity = null;
-  }
+  };
 
   getActivity = (id: string) => {
     return this.activityRegistry.get(id);
@@ -80,7 +94,6 @@ class ActivityStore {
     this.activity = this.activityRegistry.get(id);
   };
 
- 
   @action createActivity = async (activity: IActivity) => {
     this.submitting = true;
     try {
@@ -135,7 +148,6 @@ class ActivityStore {
       console.error(console.error());
     }
   };
-
 
   @action setSelectedActivity = (activity: IActivity | null) => {
     this.activity = activity;
