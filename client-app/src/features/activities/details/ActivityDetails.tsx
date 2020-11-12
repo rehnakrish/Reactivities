@@ -24,8 +24,11 @@ export const ActivityDetails: React.FC<RouteComponentProps<DetailsParams>> = ({
   useEffect(() => {
     loadActivity(match.params.id);
   }, [loadActivity, match.params.id]);
-  if (loading || !activity)
+  if (loading )
     return <LoadingComponent content="Loading activity..."></LoadingComponent>;
+  
+  if (!activity)
+    return <h2>Not Found</h2>
 
   return (
     <Grid>
